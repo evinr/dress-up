@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Dress Up Demo</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0' />
+<!-- 	 <script src='./resources/app.js'></script>
+    <link rel='stylesheet' type='text/css' href='./resources/style.css'> -->
+	<style type='text/css'>
+        body {
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .inputArea {
+            background-color: grey;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 15px;
+        }
+        #backgroundImg {
+            margin-bottom: -5px;
+            width: 100%;
+        }
+        .details {
+            bottom: 13px;
+            position: absolute;
+            right: 15px;
+        }
+	</style>
+</head>
+<body>
+    <section class="inputArea">
+        <form action="">
+            <input type="file" placeholder="your background here" name="background" id="background-selector">
+            <label for="background-selector" id="background-label">Update Background</label>
+            <br>
+            <button id="itemAdder">
+                Add Item
+            </button>
+        </form>
+    </section>
+    <img id="backgroundImg" src="./defaultBg.jpg"/>
+    <section class="details">   
+        <a href="https://en.wikipedia.org/wiki/Paper_doll">Inspired by Paper Doll Toys</a>
+    </section>
+</body>
+
+<script>
+    // add a background as a picture
+    const inputElement = document.getElementById("background-selector");
+    inputElement.addEventListener("change", displayFileAsImg, false);
+
+    function displayFileAsImg() {
+        // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
+        var preview = document.getElementById('backgroundImg');
+        var file    = document.querySelector('input[type=file]').files[0];
+        var reader  = new FileReader();
+
+        reader.addEventListener("load", function () {
+            preview.src = reader.result;
+        }, false);
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+    
+
+
+
+    // add an image with white background that automatically crops
+        // create img element
+        // populate with the file
+        // add to the dom
+
+    // resize images
+
+    // reposition images
+
+    // rotate images
+
+</script>
+</html>

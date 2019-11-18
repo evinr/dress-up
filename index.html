@@ -11,6 +11,10 @@
             position: relative;
         }
 
+        input[type="file"] {
+            display: none;
+        }
+
         .inputArea {
             background-color: grey;
             position: absolute;
@@ -18,7 +22,8 @@
             left: 15px;
             padding: 15px;
         }
-        .mainImg {
+        #backgroundImg {
+            margin-bottom: -5px;
             width: 100%;
         }
         .details {
@@ -26,37 +31,170 @@
             position: absolute;
             right: 15px;
         }
+        .overlay {
+            top: 50%;
+            right: 50%;
+            position: absolute;
+            width: 200px;
+            z-index: 9;
+        }
+        #canvas {
+            top: 20%;
+            width: auto;
+        }
 	</style>
 </head>
 <body>
     <section class="inputArea">
         <form action="">
-            <input type="file" placeholder="your background here" name="background" id="background">
-            <button id="bgAdder">
-                Add Background
-            </button>
-            <br>
-            <button id="itemAdder">
-                Add Item
-            </button>
+            <input type="file" placeholder="your background here" name="background" id="background-selector">
+            <label for="background-selector" id="background-label">Update Background</label>
+        </form>
+        <form action="">
+            <input type="file" placeholder="your background here" name="itemAdder" id="itemAdder">
+            <label for="itemAdder" id="itemAdder-label">Add Item</label>
         </form>
     </section>
-    <img class="mainImg" src="./defaultBg.jpg"/>
+    <img id="backgroundImg" src="./defaultBg.jpg"/>
     <section class="details">   
         <a href="https://en.wikipedia.org/wiki/Paper_doll">Inspired by Paper Doll Toys</a>
     </section>
+    <canvas id="canvas" class="overlay"></canvas>
 </body>
 
 <script>
+    const removeWhiteBackground = (imgElement, uniqueCanvasId) => {
+        const canvasTarget = document.getElementById(uniqueCanvasId);
+        // canvas allows us to do the math needed to analyze and process the pixels of an image
+        // provides the 2d canvas to process the byte array on
+        var ctx = canvasTarget.getContext("2d");   
+        
+        // copies the original image onto the canvas by redrawing
+        ctx.drawImage(imgElement,0,0);
+            // converts the image to pixel values
+        var imgd = ctx.getImageData(0, 0, canvasTarget.width, canvasTarget.height),
+            // these are the pixels in a buffer array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+            pix = imgd.data,
+            // the alpha channel here is what is important
+            newColor = {r:0,g:0,b:0, a:0};
+
+        for (var i = 0, n = pix.length; i <n; i += 4) {
+            // grabs the individual pixels values with the offset for color channels
+            var r = pix[i],
+                    g = pix[i+1],
+                    b = pix[i+2];
+                // checks for the target color of white for each pixel
+                if(r == 255&& g == 255 && b == 255){ 
+                    // Change the white to the new color.
+                    pix[i] = newColor.r;
+                    pix[i+1] = newColor.g;
+                    pix[i+2] = newColor.b;
+                    // TODO: Determine if each channels needs to be set or only the alpha
+                    pix[i+3] = newColor.a;
+                }
+        }
+        // puts the data back on the canvas as a way to render the transformed image
+        ctx.putImageData(imgd, 0, 0);
+        // document.body.appendChild(canvasElement);
+        // return canvasElement;
+    };
+    
+    const manipulateImage = (event) => {
+        // handles resizing, repositioning, and rotation of added images
+    
+        // resize images
+            // tap to make larger, tap to make smaller
+            // TODO: make this have drag and drop funcitonality
+
+        // reposition images
+            // click on the image and drag to desired location
+
+        // rotate images
+            // easiest way is to toggle an up and down single use control
+            // TODO: implement a standard drag to rotate
+                //transform: rotate(5deg);
+                //transform: rotate(-5deg);
+        
+        // layers up and down via z-index
+
+        // flip the image on the x
+    };
+
+    const addManipulaitonControls = () => {
+        //layer up
+        // layer down
+
+        // Larger
+        // smaller
+
+        // clockwise
+        // counter clockwise
+
+        // delete
+    };
+
+    // allows uploading of images in a asyncronous manner
+    const fileUploadToLocalPromise = (targetInput) => {
+        return new Promise((resolve, reject) => {
+            var reader  = new FileReader();
+            var file = targetInput.files[0];
+
+            reader.addEventListener("load", function () {
+                resolve(reader.result)
+            }, false);
+
+            reader.addEventListener("error", function () {
+                reject(Error("unable to parse file"));
+            }, false);
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        });
+    };
+
+    function uuidv4() {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    }
+
+
     // add a background as a picture
+    document.getElementById("background-selector").addEventListener("change", function(event){
+        const preview = document.getElementById('backgroundImg');
+        fileUploadToLocalPromise(event.srcElement).then((successMessage) => { 
+            preview.src = successMessage;
+        });
+        // TODO: Add rejection clause
+    }, false);
 
     // add an image with white background that automatically crops
+    document.getElementById('itemAdder').addEventListener('change', function(event){
+        let newImgElement = document.createElement("img");
+        newImgElement.className = 'overlay';
 
-    // resize images
 
-    // reposition images
+        let newCanvasElement = document.createElement('canvas');
+        const uniqueCanvasId = newCanvasElement.id = uuidv4();
+        newCanvasElement.width = newImgElement.naturalWidth;
+        newCanvasElement.height = newImgElement.naturalHeight;
+        newCanvasElement.className = 'overlay';
+        // need to put canvas on the dom before "drawing" to it
+        document.body.appendChild(newCanvasElement);
+        
+        fileUploadToLocalPromise(event.srcElement).then((successMessage) => { 
+            newImgElement.src = successMessage;
+            // passes the img node to have all white background removed
+            newCanvasElement = removeWhiteBackground(newImgElement, uniqueCanvasId);
+            // provides an explicit size on the canvas
+           
+            // TODO: bind manipulateImage to click event
+            // TODO: add controls for manipulating images
 
-    // rotate images
+        });
+        
+    })
 
 </script>
 </html>
